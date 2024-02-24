@@ -3,6 +3,7 @@ package com.example.server.controllers;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.example.server.form.PoiForm;
 import com.example.server.pojo.Pic;
 import com.example.server.pojo.Poi;
 import com.example.server.service.IPicService;
@@ -130,7 +131,7 @@ public class PointController {
     @GetMapping("/detail/{id}")
     public Result<PoiVo> detail(@PathVariable int id){
         log.info("detail传入的数据是{}",id);
-//        PoiVo poiVo = new PoiVo();
+        PoiVo poiVo = new PoiVo();
 //        if (id == 1) {
 //            poiVo.name = "教室";
 //            poiVo.description = "教室是学习的地方";
@@ -144,7 +145,12 @@ public class PointController {
 //        }
 //        Poi poi = poiMapper.selectById(id);
         Poi poi = poiService.getById(id);
-        return Result.success(poi);
+        QueryWrapper query = new QueryWrapper();
+        query.eq("poi_id",poi.getId());
+        List<Pic> pics = picService.list(query);
+        BeanUtils.copyProperties(poi,poiVo);
+        poiVo.setPics(pics);
+        return Result.success(poiVo);
     }
 
     //删
@@ -158,26 +164,32 @@ public class PointController {
     @DeleteMapping("/delete/{id}")
     public Result delete(@PathVariable int id){
         log.info("你删除了{}",id);
-        poiService.removeById(id);
+        poiService.deleteMain(id);
         return Result.success();
     }
 
     //增
     //POST请求使用body数据包传输JSON数据
     @PostMapping("/add")
-    public Result add(@RequestBody Poi poi){//使用RequestBody直接接收Body里面的数据
-        log.info("接收到了Poi名称为{},描述为{}",poi.getName(),poi.getDescription());
-        poiService.save(poi);
-        return Result.success();
+    public Result add(@RequestBody PoiForm poiForm){//使用RequestBody直接接收Body里面的数据
+        log.info("接收到了Poi名称为{},描述为{}",poiForm.getName(),poiForm.getDescription());
+        Poi poi = new Poi();
+        //拆分数据
+        BeanUtils.copyProperties(poiForm,poi);
+        poiService.saveMain(poi,poiForm.getPics());
+
+        return detail(poi.getId());
     }
 
     //改
     //同样使用body数据包传输JSON数据
     @PutMapping("/edit/{id}")
-    public Result edit(@PathVariable int id, @RequestBody Poi poi){
-        log.info("需要更改的id为{},接收到了Poi名称为{},描述为{}",id,poi.getName(),poi.getDescription());
+    public Result edit(@PathVariable int id, @RequestBody PoiForm poiForm){
+        log.info("需要更改的id为{},接收到了Poi名称为{},描述为{}",id,poiForm.getName(),poiForm.getDescription());
+        Poi poi = new Poi();
+        BeanUtils.copyProperties(poiForm,poi);
         poi.setId(id);
-        poiService.updateById(poi);
+        poiService.updateMain(poi,poiForm.getPics());
         return Result.success();
     }
 }
