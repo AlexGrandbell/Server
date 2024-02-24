@@ -3,6 +3,7 @@ package com.example.server.controllers;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.example.server.exception.PoiException;
 import com.example.server.form.PoiForm;
 import com.example.server.pojo.Pic;
 import com.example.server.pojo.Poi;
@@ -10,6 +11,7 @@ import com.example.server.service.IPicService;
 import com.example.server.service.IPoiService;
 import com.example.server.vo.PoiVo;
 import com.example.server.vo.Result;
+import com.sun.org.apache.bcel.internal.generic.IF_ACMPEQ;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -145,6 +147,9 @@ public class PointController {
 //        }
 //        Poi poi = poiMapper.selectById(id);
         Poi poi = poiService.getById(id);
+        if (poi == null){
+            throw PoiException.notFound();
+        }
         QueryWrapper query = new QueryWrapper();
         query.eq("poi_id",poi.getId());
         List<Pic> pics = picService.list(query);
