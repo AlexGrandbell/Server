@@ -13,6 +13,7 @@ public class WebConfig implements WebMvcConfigurer {
     @Value("${upload.accessPath}")
     private String accessPath;
 
+    //呼叫转移
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         registry.addResourceHandler(accessPath +"**").addResourceLocations("file:"+ localPath);//不要忘记加file:
